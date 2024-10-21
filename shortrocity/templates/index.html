@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Generation App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("form").on("submit", function(e) {
+                e.preventDefault(); // Prevent the default form submission
+                const question = $("#question").val(); // Get the input value
+
+                // Show loading message immediately upon form submission
+                $("#loadingMessage").show();
+                $("#videoLoadedMessage").hide(); // Hide video loaded message
+
+                $.ajax({
+                    type: "POST",
+                    url: '/',
+                    data: { question: question },
+                    success: function(response) {
+                        if (response.video_path) {
+                            // Update the video source
+                            $("video source").attr("src", response.video_path);
+                            $("video")[0].load(); // Load the new video
+
+                            // Event listener for when the video is loaded
+                            $("video")[0].onloadeddata = function() {
+                                $("#loadingMessage").hide(); // Hide loading message
+                                $("#videoLoadedMessage").show(); // Show the video loaded message
+                            };
+
+                            // If the video is already cached, trigger the onloadeddata manually
+                            if ($("video")[0].readyState >= 3) { // If video is ready
+                                $("#loadingMessage").hide(); // Hide loading message
+                                $("#videoLoadedMessage").show(); // Show the video loaded message
+                            }
+
+                            // Reload the page after a short delay (e.g., 3 seconds)
+                            setTimeout(function() {
+                                location.reload(); // Reload the page
+                            }, 3000); // Change the time as needed
+                        }
+                    },
+                    error: function() {
+                        alert("Error generating video.");
+                        $("#loadingMessage").hide(); // Hide loading message on error
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Video Generation App</h1>
+    <form method="POST" action="/">
+        <label for="question">Enter your question:</label>
+        <input type="text" id="question" name="question" placeholder="Enter your question here..." required>
+        <button type="submit">Generate Video</button>
+    </form>
+
+    <h2>Your Video:</h2>
+    <video width="600" controls>
+        <source src="{{ url_for('static', filename='videos/short.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Loading message -->
+    <div id="loadingMessage" style="display: none; font-size: 18px; color: black;">Loading video...</div>
+    
+    <!-- Message when video is loaded -->
+    <div id="videoLoadedMessage" style="display: none; font-size: 18px; color: black;">Video Loaded!</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Generator</title>
+    <link rel="stylesheet" href="static/css/styles.css"> <!-- Link to your CSS file -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery -->
+</head>
+<body>
+    <h1>Video Generator</h1>
+
+    <form id="video-form">
+        <label for="question">Enter your question:</label>
+        <input type="text" id="question" name="question" required>
+        <button type="submit">Generate Video</button>
+    </form>
+
+    <div id="loading" style="display: none;">Generating video, please wait...</div> <!-- Loading Indicator -->
+
+    <h2>Generated Video</h2>
+    <video id="generated-video" controls width="600" style="display: none;">
+        <source id="video-source" src="static/videos/short.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        $(document).ready(function() {
+            $('#video-form').on('submit', function(event) {
+                event.preventDefault(); // Prevent form submission
+
+                // Get the question input
+                const question = $('#question').val();
+
+                // Show loading indicator
+                $('#loading').show();
+                $('#generated-video').hide(); // Hide the video while generating
+
+                // Make an AJAX request to generate the video
+                $.ajax({
+                    type: 'POST',
+                    url: '/',
+                    data: { question: question },
+                    success: function(response) {
+                        // Hide loading indicator
+                        $('#loading').hide();
+
+                        // Parse the JSON response
+                        const data = JSON.parse(response);
+                        const videoPath = data.video_path || 'static/videos/short.mp4'; // Default video path
+
+                        // Update the video source and show the video
+                        $('#video-source').attr('src', videoPath);
+                        $('#generated-video').get(0).load(); // Load the new video
+                        $('#generated-video').show(); // Show the video element
+                    },
+                    error: function(error) {
+                        // Hide loading indicator
+                        $('#loading').hide();
+                        console.error('Error generating video:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
